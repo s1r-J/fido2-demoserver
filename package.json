@@ -1,0 +1,33 @@
+{
+  "name": "fido2-demoserver",
+  "version": "0.1.0",
+  "description": "FIDO2 Demo Server for @s1r-J/fido2server-lib module.",
+  "type": "module",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "start:watch": "nodemon index.js",
+    "mds": "node scripts/mds.js"
+  },
+  "author": "s1r-J",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@s1r-j/fido2server-lib": "^0.1.0",
+    "axios": "~0.26.1",
+    "base64url": "~3.0.1",
+    "cors": "~2.8.5",
+    "dotenv": "~10.0.0",
+    "ejs": "~3.1.6",
+    "express": "~4.17.1",
+    "fido-mds3": "^0.3.1-20220207",
+    "jsrsasign": "~10.5.18",
+    "log4js": "~6.4.2",
+    "nedb": "~1.8.0",
+    "nedb-promises": "~5.0.3",
+    "nodemon": "~2.0.15",
+    "randomstring": "~1.2.1",
+    "str2ab": "^1.0.1"
+  }
+}
