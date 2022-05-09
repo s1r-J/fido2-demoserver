@@ -1,9 +1,6 @@
-import axios from 'axios';
-import base64url from 'base64url';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import rs from 'jsrsasign';
 import FM3 from 'fido-mds3';
 
 const MDS2_ENDPOINTS = [
@@ -63,93 +60,12 @@ X2S5Ht8+e+EQnezLJBJXtnkRWY+Zt491wgt/AwSs5PHHMv5QgjELOuMxQBc=
     }
 
     // MDS2
-    const parseMds2 = async function(url) {
-        const mdsResponse = await axios.get(url.toString());
-        const [header, payload, signature] = mdsResponse.data.split('.');
-        if (!header || !payload || !signature) {
-            throw new FM3AccessError('Blob JWT is wrong format.');
-        }
-    
-        const headerJSON = JSON.parse(base64url.decode(header));
-    
-        const certPEMs = [];
-        const rsCerts = [];
-        let crlSNs = [];
-        for (const x5c of headerJSON['x5c']) {
-            const certPemString = ['-----BEGIN CERTIFICATE-----', x5c, '-----END CERTIFICATE-----'].join('\n');
-            certPEMs.push(certPemString);
-    
-            const rsCertificate = new rs.X509(certPemString);
-            rsCerts.push(rsCertificate);
-    
-            const crlUris = rsCertificate.getExtCRLDistributionPointsURI() || [];
-            const snInArray = await Promise.all(crlUris.map(async (uri) => {
-                let res = await axios.get(uri);
-                let crlPEM = res.data != null && res.data.startsWith('-----BEGIN') ? res.data : null;
-                if (crlPEM == null) {
-                    res = await axios.get(uri, { responseType: 'arraybuffer' });
-                    crlPEM = ['-----BEGIN X509 CRL-----', Buffer.from(res.data).toString('base64'), '-----END X509 CRL-----'].join('\n');
-                }
-                const crl = new rs.X509CRL(crlPEM);
-                const revSNs = crl.getRevCertArray().map((revCert) => {
-                    return revCert.sn.hex;
-                }) || [];
-    
-                return revSNs;
-            })) || [[]];
-    
-            crlSNs = [
-                ...crlSNs,
-                ...snInArray.flat(),
-            ];
-        }
-    
-        rsCerts.push(new rs.X509(MDS2_ROOTCERT));
-        certPEMs.push(MDS2_ROOTCERT)
-    
-        const hasRevokedCert = rsCerts.some((c) => {
-            const sn = c.getSerialNumberHex();
-            return crlSNs.includes(sn);
-        });
-        if (hasRevokedCert) {
-            throw new Error('Revoked certificate is included.');
-        }
-    
-        let isValidChain = true;
-        for (let i = 0; i < rsCerts.length - 1; i++) {
-            const cert = rsCerts[i];
-            const certStruct = rs.ASN1HEX.getTLVbyList(cert.hex, 0, [0]);
-            if (certStruct == null) {
-                isValidChain = false;
-                break;
-            }
-            const algorithm = cert.getSignatureAlgorithmField();
-            const signatureHex = cert.getSignatureValueHex()
-    
-            const signature = new rs.KJUR.crypto.Signature({alg: algorithm});
-            const upperCertPEM = certPEMs[i + 1];
-            signature.init(upperCertPEM);
-            signature.updateHex(certStruct);
-            isValidChain = isValidChain && signature.verify(signatureHex);
-        }
-        if (!isValidChain) {
-            throw new Error('Certificate chain cannot be verified.');
-        }
-    
-        // verify signature
-        const alg = headerJSON['alg'];
-        const isValid = rs.KJUR.jws.JWS.verifyJWT(mdsResponse.data, certPEMs[0], {alg: [alg]});
-        if (!isValid) {
-            throw new Error('JWS cannot be verified.');
-        }
-    
-        // decode payload
-        const payloadString = base64url.decode(payload);
-        return JSON.parse(payloadString);
-    }
+    const accessor = FM3.Accessor;
+    accessor.setRootCertPem(MDS2_ROOTCERT);
     for (const url of MDS2_ENDPOINTS) {
         try {
-            const json = await parseMds2(url);
+            await accessor.fromUrl(new URL(url));
+            const json = accessor.toJsonObject();
             fs.writeFileSync(`./fidomds/mds2-${url.slice(-64)}.json`, JSON.stringify(json['entries']));
             console.log(`Success: ${json['entries'].length}`);
         } catch (err) {
