@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import fs from 'fs';
+import helmet from "helmet";
 import http from 'http';
 import https from 'https';
 import cors from 'cors';
@@ -99,6 +100,7 @@ const mdsUtil = new MdsUtil(addonEntries);
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(helmet());
 app.use(cors({
   "origin": "*",
   "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
