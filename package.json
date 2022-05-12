@@ -11,6 +11,9 @@
     "start:watch": "nodemon index.js",
     "mds": "node scripts/mds.js"
   },
+  "engines": {
+    "node": "12.x"
+  },
   "author": "s1r-J",
   "license": "Apache-2.0",
   "dependencies": {
@@ -26,6 +29,7 @@
     "log4js": "~6.4.2",
     "nedb": "~1.8.0",
     "nedb-promises": "~5.0.3",
+    "node-cron": "^3.0.0",
     "nodemon": "~2.0.15",
     "randomstring": "~1.2.1",
     "str2ab": "^1.0.1"

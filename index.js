@@ -1,7 +1,9 @@
 import crypto from 'crypto';
 import fs from 'fs';
+import http from 'http';
 import https from 'https';
 import cors from 'cors';
+import cron from 'node-cron';
 import dotenv from 'dotenv';
 import express from 'express';
 import log4js from 'log4js';
@@ -53,6 +55,18 @@ const logger = log4js.getLogger('fido2');
 // db
 const datastore = nedb.create(process.env.DB_FILE || './data/database.db');
 
+// cron
+if (cron.validate(process.env.DB_RESET)) {
+  cron.schedule(process.env.DB_RESET, () => {
+    fs.writeFileSync(process.env.DB_FILE || './data/database.db', '');
+  });
+}
+if (cron.validate(process.env.LOG_ROTATE)) {
+  cron.schedule(process.env.LOG_ROTATE, () => {
+    fs.writeFileSync(process.env.LOG_FILE || './log/app.log', '');
+  });
+}
+
 // FIDO metadata
 let addonEntries = [];
 if (process.env.FIDO_METADATA_DIR) {
@@ -96,8 +110,8 @@ app.set("view engine", "ejs");
 app.set("views", path.resolve('./views'));
 
 const options = {
-  key:  fs.readFileSync(path.resolve(process.env.PRIV_KEY)), // './ssl/privkey.pem'
-  cert: fs.readFileSync(path.resolve(process.env.CERT)), // './ssl/fullchain.pem'
+  key: process.env.PRIV_KEY ? fs.readFileSync(path.resolve(process.env.PRIV_KEY)) : null, // './ssl/privkey.pem'
+  cert: process.env.CERT ? fs.readFileSync(path.resolve(process.env.CERT)) : null, // './ssl/fullchain.pem'
 };
 
 app.get('/hello', function (req, res) {
@@ -483,7 +497,7 @@ app.post('/assertion/result', async (req, res) => {
           credentialId: credential.credentialId,
           userId,
         }, {
-          $set: { signCount: result.signCount},
+          $set: { signCount: result.signCount },
         }, {});
         await datastore.remove({
           type: 'challenge',
@@ -518,8 +532,13 @@ app.post('/assertion/result', async (req, res) => {
   }
 });
 
-const httpsServer = https.createServer(options, app);
-const server = httpsServer.listen(process.env.PORT, process.env.HOSTNAME, function() {
+let httpServer;
+if (options.cert != null && options.key != null) {
+  httpServer = https.createServer(options, app);
+} else {
+  httpServer = http.createServer(app);
+}
+const server = httpServer.listen(process.env.PORT, process.env.HOSTNAME, function() {
   const host = server.address().address;
   const port = server.address().port;
 
