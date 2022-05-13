@@ -58,11 +58,13 @@ const datastore = nedb.create(process.env.DB_FILE || './data/database.db');
 
 // cron
 if (cron.validate(process.env.DB_RESET)) {
+  console.log(`Set DB reset cron: ${process.env.DB_RESET}`);
   cron.schedule(process.env.DB_RESET, () => {
     fs.writeFileSync(process.env.DB_FILE || './data/database.db', '');
   });
 }
 if (cron.validate(process.env.LOG_ROTATE)) {
+  console.log(`Set log rotate cron: ${process.env.LOG_ROTATE}`);
   cron.schedule(process.env.LOG_ROTATE, () => {
     fs.writeFileSync(process.env.LOG_FILE || './log/app.log', '');
   });
@@ -101,6 +103,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(helmet());
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    'script-src': ["'self'", "'unsafe-inline'", "code.jquery.com"],
+  }
+}));
 app.use(cors({
   "origin": "*",
   "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
