@@ -21,7 +21,6 @@ jobs:
     - name: Change config and push
       run: | 
         cd ./gitlab
-        ls
         cp ./.env.sample ./.env
         sed -i -e "s/SCHEME=https/SCHEME=http/g" ./.env
         sed -i -e "s/HOSTNAME=localhost/HOSTNAME=fido2-glitch.s1r-j.tk/g" ./.env
@@ -30,9 +29,10 @@ jobs:
         sed -i -e "s/LOG_LEVEL=info/LOG_LEVEL=warn/g" ./.env
         sed -i -e "s/DB_RESET=/DB_RESET=* 59 23 * * */g" ./.env
         sed -i -e "s/LOG_ROTATE=/LOG_ROTATE=* 59 23 * * */g" ./.env
+        cat ./.env
         git config --global user.email "s1r.aria.azureglo@gmail.com"
         git config --global user.name "s1r-J"
         git config --global pull.ff only
         git add .
-        git commit -m "Mirror $(date +'%Y-%m-%d')"
+        git commit --allow-empty -m "Mirror $(date +'%Y-%m-%d')"
         git push origin main
