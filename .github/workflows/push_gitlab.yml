@@ -16,7 +16,7 @@ jobs:
     - name: Checkout GitLab repo
       run: | 
         git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/s1r-J/fido2-demoserver.git ./gitlab
-        cp -r ./github ./gitlab
+        cp -r ./github/* ./gitlab
 
     - name: Change config and push
       run: | 
