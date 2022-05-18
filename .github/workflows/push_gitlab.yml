@@ -16,7 +16,7 @@ jobs:
     - name: Checkout GitLab repo
       run: | 
         git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/s1r-J/fido2-demoserver.git ./gitlab
-        cp -r ./github/. ./gitlab
+        rsync -ahvr --progress ./github/ ./gitlab --exclude '.git/'
 
     - name: Change config and push
       run: | 
@@ -29,10 +29,10 @@ jobs:
         sed -i -e "s/LOG_LEVEL=info/LOG_LEVEL=warn/g" ./.env
         sed -i -e "s/DB_RESET=/DB_RESET=* 59 23 * * */g" ./.env
         sed -i -e "s/LOG_ROTATE=/LOG_ROTATE=* 59 23 * * */g" ./.env
-        cat ./.env
         git config --global user.email "s1r.aria.azureglo@gmail.com"
         git config --global user.name "s1r-J"
         git config --global pull.ff only
+        git add ./.env
         git add .
         git commit --allow-empty -m "Mirror $(date +'%Y-%m-%d')"
         git push origin main
