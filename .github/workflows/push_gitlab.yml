@@ -21,6 +21,7 @@ jobs:
     - name: Change config and push
       run: | 
         cd ./gitlab
+        ls
         cp ./.env.sample ./.env
         sed -i -e "s/SCHEME=https/SCHEME=http/g" ./.env
         sed -i -e "s/HOSTNAME=localhost/HOSTNAME=fido2-glitch.s1r-j.tk/g" ./.env
