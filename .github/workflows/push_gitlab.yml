@@ -29,6 +29,7 @@ jobs:
         sed -i -e "s/LOG_LEVEL=info/LOG_LEVEL=warn/g" ./.env
         sed -i -e "s/DB_RESET=/DB_RESET=* 59 23 * * */g" ./.env
         sed -i -e "s/LOG_ROTATE=/LOG_ROTATE=* 59 23 * * */g" ./.env
+        sed -i -e "s/\.env/#\.env/g" ./.gitignore
         git config --global user.email "s1r.aria.azureglo@gmail.com"
         git config --global user.name "s1r-J"
         git config --global pull.ff only
