@@ -1,0 +1,37 @@
+name: Mirror to Gitlab
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout GitHub repo
+      uses: actions/checkout@v2
+      with:
+        path: ./github
+    
+    - name: Checkout GitLab repo
+      run: | 
+        git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/s1r-J/fido2-demoserver.git ./gitlab
+        cp -r ./github ./gitlab
+
+    - name: Change config and push
+      run: | 
+        cd ./gitlab
+        cp ./.env.sample ./.env
+        sed -i -e "s/SCHEME=https/SCHEME=http/g" ./.env
+        sed -i -e "s/HOSTNAME=localhost/HOSTNAME=fido2-glitch.s1r-j.tk/g" ./.env
+        sed -i -e "s/PRIV_KEY=.\/ssl\/localhost-key.pem/PRIV_KEY=/g" ./.env
+        sed -i -e "s/CERT=.\/ssl\/localhost.pem/CERT=/g" ./.env
+        sed -i -e "s/LOG_LEVEL=info/LOG_LEVEL=warn/g" ./.env
+        sed -i -e "s/DB_RESET=/DB_RESET=* 59 23 * * */g" ./.env
+        sed -i -e "s/LOG_ROTATE=/LOG_ROTATE=* 59 23 * * */g" ./.env
+        git config --global user.email "s1r.aria.azureglo@gmail.com"
+        git config --global user.name "s1r-J"
+        git config --global pull.ff only
+        git add .
+        git commit -m "Mirror $(date +'%Y-%m-%d')"
+        git push origin main
