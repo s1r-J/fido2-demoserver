@@ -36,3 +36,4 @@ jobs:
       with:
         project-id: '${{ secrets.PROJECT_ID }}'
         auth-token: '${{ secrets.AUTH_TOKEN }}'
+        path: glitch
