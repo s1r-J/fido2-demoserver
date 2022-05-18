@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  sync:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout GitHub repo
@@ -13,14 +13,14 @@ jobs:
       with:
         path: ./github
     
-    - name: Checkout GitLab repo
+    - name: Copy to glitch dir
       run: | 
-        git clone https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/s1r-J/fido2-demoserver.git ./gitlab
-        rsync -ahvr --progress ./github/ ./gitlab --exclude '.git/'
+        mkdir glitch
+        rsync -ahvr --progress ./github/ ./glitch --exclude '.git/'
 
-    - name: Change config and push
+    - name: Change config
       run: | 
-        cd ./gitlab
+        cd ./glitch
         cp ./.env.sample ./.env
         sed -i -e "s/SCHEME=https/SCHEME=http/g" ./.env
         sed -i -e "s/HOSTNAME=localhost/HOSTNAME=fido2-glitch.s1r-j.tk/g" ./.env
@@ -30,10 +30,9 @@ jobs:
         sed -i -e "s/DB_RESET=/DB_RESET=* 59 23 * * */g" ./.env
         sed -i -e "s/LOG_ROTATE=/LOG_ROTATE=* 59 23 * * */g" ./.env
         sed -i -e "s/\.env/#\.env/g" ./.gitignore
-        git config --global user.email "s1r.aria.azureglo@gmail.com"
-        git config --global user.name "s1r-J"
-        git config --global pull.ff only
-        git add ./.env
-        git add .
-        git commit --allow-empty -m "Mirror $(date +'%Y-%m-%d')"
-        git push origin main
+
+    - name: Sync to Glitch Project
+      uses: kanadgupta/glitch-sync@main
+      with:
+        project-id: '${{ secrets.PROJECT_ID }}'
+        auth-token: '${{ secrets.AUTH_TOKEN }}'
