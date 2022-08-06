@@ -40,19 +40,9 @@ Environment variable is in `.env` file.
 If you want to change hostname or port, change `HOSTNAME` or `PORT` in `.env` file.
 In that state, for passing self-conformance test replace metadata service data file.
 
-1. Access http://mds.certinfra.fidoalliance.org/ and register new url.
-    - For MDS version 3 http://mds3.certinfra.fidoalliance.org/
-2. Get endpoints and root certificate.
-
-![mds](./img/mds-endpoints.png)
-
-3. Set endpoints to `MDS2_ENDPOINTS` variable in `scripts/mds.js`.
-    - For MDS version 3 `MDS3_ENDPOINTS` variable
-4. Set root certificate to `MDS2_ROOTCERT` variable in `scripts/mds.js`.
-    - For MDS version 3 `MDS3_ROOTCERT` variable
-5. `npm run mds`
-6. `fidomds/mds2-<random value>.json` is created.
-    - For MDS version 3 `fidomds/mds3-<random value>.json`
+To get metadata service data, using `npm run mds`.
+For MDS version 2 `fidomds/mds2-<random value>.json` is created
+and for MDS version3 `fidomds/mds3-<random value>.json`.
 
 ## License
 
