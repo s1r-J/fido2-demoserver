@@ -12,7 +12,7 @@
     "mds": "node scripts/mds.js"
   },
   "engines": {
-    "node": "12.x"
+    "node": ">=12.x"
   },
   "author": "s1r-J",
   "license": "Apache-2.0",
